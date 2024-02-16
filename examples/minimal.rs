@@ -18,6 +18,16 @@ fn main() {
 }
 
 fn wrapper() -> ResultOf<()> {
-    Err(Box::from("eeeeee"))
+    let mut cw = ConsoleWindow::new()?;
+    
+    cw.info("info 1");
+    println!( "#        test         #" );
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    cw.info("info 22");
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    println!( "#        t e s t 33         #" );
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    cw.error("error 1");
+    Ok(())
 }
 
