@@ -5,7 +5,6 @@ use std::io::Write;
 use crossterm::{QueueableCommand,ExecutableCommand};
 use crossterm::terminal as xTerm;
 use crossterm::cursor   as xCursor;
-use crossterm::event    as xEvent;
 use crossterm::style    as xStyle;
 
 static POLL_WAIT_TIME: std::time::Duration = std::time::Duration::from_secs(0);
@@ -13,6 +12,12 @@ static POLL_WAIT_TIME: std::time::Duration = std::time::Duration::from_secs(0);
 //          IMPL
 //  //  //  //  //  //  //  //  //  //
 impl ConsoleWindow {
+    pub fn set_automouse_capturing( &mut self, b: bool ) {
+        self.automouse_capturing = b;
+    }
+    pub fn getPainter( &mut self ) -> ResultOf< ConsoleDraw > {
+        ConsoleDraw::new(self)
+    }
     pub fn read_events() -> ResultOf< Vec<xEvent::Event> > {
         let mut result = Vec::new();
         while xEvent::poll( POLL_WAIT_TIME )? {
@@ -47,17 +52,19 @@ impl ConsoleWindow {
     pub(crate) fn restore_log_screen(&mut self) {
         let _ = xTerm::disable_raw_mode();
         let _ = self.stdout.execute( xEvent::DisableMouseCapture );
-        let _ = self.stdout.execute( xTerm::LeaveAlternateScreen );
-        let _ = self.stdout.execute( xCursor::RestorePosition );
-        let _ = self.stdout.execute( xCursor::Show );
+        let _ = self.stdout.execute(  xTerm::LeaveAlternateScreen );
+        let _ = self.stdout.queue(    xTerm::EnableLineWrap);
+        let _ = self.stdout.execute(xCursor::RestorePosition );
+        let _ = self.stdout.execute(xCursor::Show );
     }
     pub(crate) fn switch_main_screen(&mut self) -> ResultOf< () > {
         xTerm::enable_raw_mode()?;
         self.stdout.execute( xTerm::BeginSynchronizedUpdate )?;
         self.stdout.queue( xCursor::SavePosition )?;
-        self.stdout.queue( xTerm::EnterAlternateScreen)?;
+        self.stdout.queue(   xTerm::EnterAlternateScreen)?;
+        self.stdout.queue(   xTerm::DisableLineWrap)?;
         self.stdout.queue( xCursor::Hide )?;
-        if self.auto_mouse_capturing {
+        if self.automouse_capturing {
             self.stdout.execute( xEvent::EnableMouseCapture )?;
         }
         Ok(())
@@ -80,6 +87,9 @@ impl ConsoleWindow {
 
 //  //  //  //  //  //  //  //  //  //
 impl ConsoleWindow {
+    pub(crate) fn size() -> ResultOf< (u16,u16) > {
+        return Ok( xTerm::size()? );
+    }
     pub(crate) fn move_to( &mut self, x: u16, y: u16 ) -> ResultOf<()> {
         self.stdout.queue( xCursor::MoveTo( x, y) )?;
         Ok(())

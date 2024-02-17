@@ -10,7 +10,7 @@ mod console_draw;
 
 pub struct ConsoleWindow {
     stdout: std::io::Stdout,
-    auto_mouse_capturing: bool,
+    automouse_capturing: bool,
 }
 impl Drop for ConsoleWindow {
     fn drop(&mut self) {
@@ -24,7 +24,7 @@ impl ConsoleWindow {
         println!( "-> ConsoleWindow preparing.." );
         crossterm::terminal::enable_raw_mode()?;
         let stdout = std::io::stdout();
-        let mut new_one= Self{stdout,auto_mouse_capturing:false};
+        let mut new_one= Self{stdout,automouse_capturing:false};
             {
                 new_one.switch_main_screen()?;
                 new_one.clear_main_screen()?;

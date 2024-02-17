@@ -5,6 +5,8 @@ use crate::ConsoleWindow;
 
 pub struct ConsoleDraw<'a> {
     console_window: &'a mut ConsoleWindow,
+    pub width: u16,
+    pub height: u16,
 }
 impl Drop for ConsoleDraw<'_> {
     fn drop(&mut self) {
@@ -13,8 +15,12 @@ impl Drop for ConsoleDraw<'_> {
 }
 
 impl ConsoleDraw<'_> {
-    pub fn new<'a>( console_window: &'a mut ConsoleWindow ) -> ResultOf< ConsoleDraw > {
-        let new_one = ConsoleDraw { console_window };
+    pub(crate) fn new<'a>( console_window: &'a mut ConsoleWindow ) -> ResultOf< ConsoleDraw > {
+        let size = ConsoleWindow::size()?;
+        let new_one = ConsoleDraw { 
+            console_window,
+            width: size.0, height: size.1,
+        };
         {
             new_one.console_window.clear_main_screen();
             new_one.console_window.sync_and_flush();
