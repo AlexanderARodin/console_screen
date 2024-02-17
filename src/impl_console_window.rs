@@ -12,17 +12,10 @@ static POLL_WAIT_TIME: std::time::Duration = std::time::Duration::from_secs(0);
 //          IMPL
 //  //  //  //  //  //  //  //  //  //
 impl ConsoleWindow {
-    pub fn read_all_events() -> ResultOf< Vec<xEvent::Event> > {
+    pub fn read_events() -> ResultOf< Vec<xEvent::Event> > {
         let mut result = Vec::new();
-        loop {
-            match xEvent::poll( POLL_WAIT_TIME ) {
-                Ok(true) => {
-                    result.push( xEvent::read()? );
-                },
-                _ => {
-                    break;
-                },
-            }
+        while xEvent::poll( POLL_WAIT_TIME )? {
+            result.push( xEvent::read()? );
         }
         return Ok( result );
     }
@@ -54,7 +47,7 @@ impl ConsoleWindow {
         let _ = xTerm::disable_raw_mode();
         let _ = self.stdout.execute( xEvent::DisableMouseCapture );
         let _ = self.stdout.execute( xTerm::LeaveAlternateScreen );
-        let _ = Self::read_all_events();
+        let _ = Self::read_events();
         let _ = self.stdout.execute( xCursor::RestorePosition );
         let _ = self.stdout.execute( xCursor::Show );
     }
