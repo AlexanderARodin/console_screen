@@ -23,6 +23,8 @@ fn wrapper() -> ResultOf<()> {
     cw.info("enter loop..");
     let mut pointer = (0,0);
     for i in 0..=65535 {
+        let title = format!(" --> {}", i);
+        cw.set_title(&title)?;
         match process_input()? {
             None => {},
             Some( pos ) => {

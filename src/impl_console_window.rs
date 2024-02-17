@@ -83,6 +83,10 @@ impl ConsoleWindow {
         self.stdout.queue( xTerm::Clear(xTerm::ClearType::All) )?;
         Ok(())
     }
+    pub fn set_title(&mut self, title: &str) -> ResultOf<()> {
+        self.stdout.execute( xTerm::SetTitle(title) )?;
+        Ok(())
+    }
 }
 
 //  //  //  //  //  //  //  //  //  //

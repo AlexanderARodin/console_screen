@@ -35,12 +35,16 @@ impl ConsoleDraw<'_> {
         self.console_window.move_to(x, y)?;
         Ok( self )
     }
-    pub fn print( &mut self, txt: &str ) -> ResultOf< &mut Self> {
+    pub fn print( &mut self, txt: &str ) -> ResultOf< &mut Self > {
         self.console_window.print(txt)?;
         Ok( self )
     }
-    pub fn set_colors( &mut self, colors: xColors ) -> ResultOf< &mut Self> {
+    pub fn set_colors( &mut self, colors: xColors ) -> ResultOf< &mut Self > {
         self.console_window.set_colors(colors)?;
+        Ok( self )
+    }
+    pub fn set_title(&mut self, title: &str) -> ResultOf< &mut Self > {
+        self.console_window.set_title(title)?;
         Ok( self )
     }
 }
