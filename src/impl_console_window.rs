@@ -15,7 +15,7 @@ impl ConsoleWindow {
     pub fn set_automouse_capturing( &mut self, b: bool ) {
         self.automouse_capturing = b;
     }
-    pub fn getPainter( &mut self ) -> ResultOf< ConsoleDraw > {
+    pub fn get_painter( &mut self ) -> ResultOf< ConsoleDraw > {
         ConsoleDraw::new(self)
     }
     pub fn read_events() -> ResultOf< Vec<xEvent::Event> > {
@@ -96,6 +96,10 @@ impl ConsoleWindow {
     }
     pub(crate) fn print( &mut self, txt: &str ) -> ResultOf<()> {
         self.stdout.queue( xStyle::Print(txt) )?;
+        Ok(())
+    }
+    pub(crate) fn set_colors( &mut self, colors: xColors ) -> ResultOf<()> {
+        self.stdout.queue( xStyle::SetColors(colors) )?;
         Ok(())
     }
 }

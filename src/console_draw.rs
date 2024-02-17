@@ -10,7 +10,8 @@ pub struct ConsoleDraw<'a> {
 }
 impl Drop for ConsoleDraw<'_> {
     fn drop(&mut self) {
-        self.console_window.sync_and_flush();
+        let _ = self.console_window.set_colors( xColors{foreground:Some(xColor::Reset),background:Some(xColor::Reset)} );
+        let _ = self.console_window.sync_and_flush();
     }
 }
 
@@ -22,9 +23,10 @@ impl ConsoleDraw<'_> {
             width: size.0, height: size.1,
         };
         {
-            new_one.console_window.clear_main_screen();
-            new_one.console_window.sync_and_flush();
+            new_one.console_window.clear_main_screen()?;
+            new_one.console_window.sync_and_flush()?;
             new_one.console_window.begin_sync()?;
+            new_one.console_window.set_colors( xColors{foreground:Some(xColor::Reset),background:Some(xColor::Reset)} )?;
         }
         return Ok( new_one );
     }
@@ -35,6 +37,10 @@ impl ConsoleDraw<'_> {
     }
     pub fn print( &mut self, txt: &str ) -> ResultOf< &mut Self> {
         self.console_window.print(txt)?;
+        Ok( self )
+    }
+    pub fn set_colors( &mut self, colors: xColors ) -> ResultOf< &mut Self> {
+        self.console_window.set_colors(colors)?;
         Ok( self )
     }
 }

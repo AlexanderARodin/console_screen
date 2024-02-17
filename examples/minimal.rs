@@ -23,14 +23,14 @@ fn wrapper() -> ResultOf<()> {
     cw.info("enter loop..");
     let mut pointer = (0,0);
     for i in 0..=65535 {
-        match process_input( &mut cw )? {
+        match process_input()? {
             None => {},
             Some( pos ) => {
                 pointer = pos;
             },
         }
         {
-            process_draw( &mut cw.getPainter()?, i, &pointer )?;
+            process_draw( &mut cw.get_painter()?, i, &pointer )?;
         }
         std::thread::sleep(std::time::Duration::from_millis(1)); // TODO: debug only
     }
@@ -38,7 +38,7 @@ fn wrapper() -> ResultOf<()> {
     Ok(())
 }
 
-fn process_input( cw: &mut ConsoleWindow ) -> ResultOf< Option<(u16,u16)> > {
+fn process_input() -> ResultOf< Option<(u16,u16)> > {
     let inputs = ConsoleWindow::read_events()?;
     let mut result: Option< (u16,u16) > = None;
     for event in inputs {
@@ -63,8 +63,11 @@ fn process_input( cw: &mut ConsoleWindow ) -> ResultOf< Option<(u16,u16)> > {
 }
 
 fn process_draw( cd: &mut ConsoleDraw, i: u16, pointer: &(u16,u16) ) -> ResultOf<()> {
-    cd  .move_to( i, i )?
-        .print( "GGGG--------------------------------------------GG" )?;
+    cd  .move_to( i/100, i/100 )?
+        .print( "x---------------------------------------------------------x" )?;
+    //
+    cd  .set_colors( xColors{foreground:Some(xColor::Black),background:Some(xColor::Blue)} )?;
+    //
     cd  .move_to( pointer.0, pointer.1 )?
         .print("+")?;
     if pointer.0 >= 5 {
@@ -79,8 +82,11 @@ fn process_draw( cd: &mut ConsoleDraw, i: u16, pointer: &(u16,u16) ) -> ResultOf
         cd  .move_to( pointer.0, pointer.1+1 )?
             .print("^")?;
     }
+    //
+    cd  .set_colors( xColors{foreground:Some(xColor::Reset),background:Some(xColor::Grey)} )?;
     let info = format!( "size: {},{}", cd.width, cd.height);
     cd  .move_to( 10, 10 )?
+        .set_colors( xColors{foreground:None,background:None} )?
         .print(&info)?;
     let info2 = format!( "cursor: {},{}", pointer.0, pointer.1);
     cd  .move_to( 10, 11 )?

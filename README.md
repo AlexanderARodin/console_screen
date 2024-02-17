@@ -1,2 +1,2 @@
 # console_window
-wrapper around crossterm and stdout
+- wrapper around crossterm and stdout
