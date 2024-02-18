@@ -15,10 +15,10 @@ impl ConsoleWindow {
     pub fn set_automouse_capturing( &mut self, b: bool ) {
         self.automouse_capturing = b;
     }
-    pub fn get_painter( &mut self ) -> ResultOf< ConsoleDraw > {
+    pub fn get_painter( &mut self ) -> Result< ConsoleDraw > {
         ConsoleDraw::new(self)
     }
-    pub fn read_events() -> ResultOf< Vec<xEvent::Event> > {
+    pub fn read_events() -> Result< Vec<xEvent::Event> > {
         let mut result = Vec::new();
         while xEvent::poll( POLL_WAIT_TIME )? {
             result.push( xEvent::read()? );
@@ -32,7 +32,7 @@ impl ConsoleWindow {
     pub fn error(&mut self, msg: &str) {
         let _ = self.println_on_log_screen(true, msg );
     }
-    fn println_on_log_screen(&mut self, is_error: bool, line: &str ) -> ResultOf< () > {
+    fn println_on_log_screen(&mut self, is_error: bool, line: &str ) -> Result< () > {
         self.restore_log_screen();
         {
             if is_error {
@@ -57,7 +57,7 @@ impl ConsoleWindow {
         let _ = self.stdout.execute(xCursor::RestorePosition );
         let _ = self.stdout.execute(xCursor::Show );
     }
-    pub(crate) fn switch_main_screen(&mut self) -> ResultOf< () > {
+    pub(crate) fn switch_main_screen(&mut self) -> Result< () > {
         xTerm::enable_raw_mode()?;
         self.stdout.execute( xTerm::BeginSynchronizedUpdate )?;
         self.stdout.queue( xCursor::SavePosition )?;
@@ -69,21 +69,21 @@ impl ConsoleWindow {
         }
         Ok(())
     }
-    pub(crate) fn begin_sync(&mut self) -> ResultOf< () > {
+    pub(crate) fn begin_sync(&mut self) -> Result< () > {
         self.stdout.execute( xTerm::BeginSynchronizedUpdate )?;
         Ok(())
     }
-    pub(crate) fn sync_and_flush(&mut self) -> ResultOf< () > {
+    pub(crate) fn sync_and_flush(&mut self) -> Result< () > {
         self.stdout.flush()?;
         self.stdout.execute( xTerm::EndSynchronizedUpdate )?;
         Ok(())
     }
 
-    pub(crate) fn clear_main_screen(&mut self) -> ResultOf< () > {
+    pub(crate) fn clear_main_screen(&mut self) -> Result< () > {
         self.stdout.queue( xTerm::Clear(xTerm::ClearType::All) )?;
         Ok(())
     }
-    pub fn set_title(&mut self, title: &str) -> ResultOf<()> {
+    pub fn set_title(&mut self, title: &str) -> Result<()> {
         self.stdout.execute( xTerm::SetTitle(title) )?;
         Ok(())
     }
@@ -91,18 +91,18 @@ impl ConsoleWindow {
 
 //  //  //  //  //  //  //  //  //  //
 impl ConsoleWindow {
-    pub(crate) fn size() -> ResultOf< (u16,u16) > {
+    pub(crate) fn size() -> Result< (u16,u16) > {
         return Ok( xTerm::size()? );
     }
-    pub(crate) fn move_to( &mut self, x: u16, y: u16 ) -> ResultOf<()> {
+    pub(crate) fn move_to( &mut self, x: u16, y: u16 ) -> Result<()> {
         self.stdout.queue( xCursor::MoveTo( x, y) )?;
         Ok(())
     }
-    pub(crate) fn print( &mut self, txt: &str ) -> ResultOf<()> {
+    pub(crate) fn print( &mut self, txt: &str ) -> Result<()> {
         self.stdout.queue( xStyle::Print(txt) )?;
         Ok(())
     }
-    pub(crate) fn set_colors( &mut self, colors: xColors ) -> ResultOf<()> {
+    pub(crate) fn set_colors( &mut self, colors: xColors ) -> Result<()> {
         self.stdout.queue( xStyle::SetColors(colors) )?;
         Ok(())
     }

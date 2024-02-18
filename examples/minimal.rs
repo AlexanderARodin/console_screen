@@ -1,4 +1,5 @@
 use std::process::exit;
+use anyhow::anyhow;
 
 use console_window::prelude::*;
 
@@ -17,7 +18,7 @@ fn main() {
     println!( "\n<-- ..FIN!\n" );
 }
 
-fn wrapper() -> ResultOf<()> {
+fn wrapper() -> Result<()> {
     let mut cw = ConsoleWindow::new()?;
     cw.set_automouse_capturing(true);
     cw.info("enter loop..");
@@ -40,7 +41,7 @@ fn wrapper() -> ResultOf<()> {
     Ok(())
 }
 
-fn process_input() -> ResultOf< Option<(u16,u16)> > {
+fn process_input() -> Result< Option<(u16,u16)> > {
     let inputs = ConsoleWindow::read_events()?;
     let mut result: Option< (u16,u16) > = None;
     for event in inputs {
@@ -48,10 +49,10 @@ fn process_input() -> ResultOf< Option<(u16,u16)> > {
             xEvent::Event::Key(key) => {
                 if key.code == xEvent::KeyCode::Char('c') {
                     if key.modifiers .contains( xEvent::KeyModifiers::CONTROL ) {
-                        return Err(Box::from( "<C-c>" ));
+                        return Err(anyhow!( "<C-c>" ));
                     }
                 }else if key.code == xEvent::KeyCode::Esc {
-                    return Err(Box::from( "Esc" ));
+                    return Err(anyhow!( "Esc" ));
                 }
             },
             xEvent::Event::Mouse( mouse_event ) => {
@@ -64,7 +65,7 @@ fn process_input() -> ResultOf< Option<(u16,u16)> > {
     Ok( result )
 }
 
-fn process_draw( cd: &mut ConsoleDraw, i: u16, pointer: &(u16,u16) ) -> ResultOf<()> {
+fn process_draw( cd: &mut ConsoleDraw, i: u16, pointer: &(u16,u16) ) -> Result<()> {
     cd  .move_to( i/100, i/100 )?
         .print( "x---------------------------------------------------------x" )?;
     //

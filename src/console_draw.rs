@@ -16,7 +16,7 @@ impl Drop for ConsoleDraw<'_> {
 }
 
 impl ConsoleDraw<'_> {
-    pub(crate) fn new<'a>( console_window: &'a mut ConsoleWindow ) -> ResultOf< ConsoleDraw > {
+    pub(crate) fn new<'a>( console_window: &'a mut ConsoleWindow ) -> Result< ConsoleDraw > {
         let size = ConsoleWindow::size()?;
         let new_one = ConsoleDraw { 
             console_window,
@@ -31,19 +31,19 @@ impl ConsoleDraw<'_> {
         return Ok( new_one );
     }
     
-    pub fn move_to( &mut self, x: u16, y: u16 ) -> ResultOf< &mut Self > {
+    pub fn move_to( &mut self, x: u16, y: u16 ) -> Result< &mut Self > {
         self.console_window.move_to(x, y)?;
         Ok( self )
     }
-    pub fn print( &mut self, txt: &str ) -> ResultOf< &mut Self > {
+    pub fn print( &mut self, txt: &str ) -> Result< &mut Self > {
         self.console_window.print(txt)?;
         Ok( self )
     }
-    pub fn set_colors( &mut self, colors: xColors ) -> ResultOf< &mut Self > {
+    pub fn set_colors( &mut self, colors: xColors ) -> Result< &mut Self > {
         self.console_window.set_colors(colors)?;
         Ok( self )
     }
-    pub fn set_title(&mut self, title: &str) -> ResultOf< &mut Self > {
+    pub fn set_title(&mut self, title: &str) -> Result< &mut Self > {
         self.console_window.set_title(title)?;
         Ok( self )
     }

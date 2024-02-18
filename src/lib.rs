@@ -2,6 +2,7 @@ pub mod prelude;
     use prelude::*;
 
 
+
 //  //  //  //  //  //  //  //  //  //
 //          CORE
 //  //  //  //  //  //  //  //  //  //
@@ -20,7 +21,7 @@ impl Drop for ConsoleWindow {
 }
 
 impl ConsoleWindow {
-    pub fn new() -> ResultOf< Self > {
+    pub fn new() -> Result< Self > {
         println!( "-> ConsoleWindow preparing.." );
         crossterm::terminal::enable_raw_mode()?;
         let stdout = std::io::stdout();
