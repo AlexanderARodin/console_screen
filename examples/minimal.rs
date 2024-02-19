@@ -19,13 +19,12 @@ fn main() {
 }
 
 fn wrapper() -> Result<()> {
-    let mut cw = ConsoleWindow::new()?;
-    cw.set_automouse_capturing(true);
-    cw.info("enter loop..");
+    let _cw = ConsoleWindow::new()?;
+    ConsoleWindow::info("enter loop..");
     let mut pointer = (0,0);
     for i in 0..=65535 {
         let title = format!(" --> {}", i);
-        cw.set_title(&title)?;
+        ConsoleWindow::set_title(&title)?;
         match process_input()? {
             None => {},
             Some( pos ) => {
@@ -33,11 +32,12 @@ fn wrapper() -> Result<()> {
             },
         }
         {
-            process_draw( &mut cw.get_painter()?, i, &pointer )?;
+            process_draw( &mut ConsoleWindow::get_painter()?, i, &pointer )?;
+            ConsoleWindow::capture_mouse()?;
         }
         std::thread::sleep(std::time::Duration::from_millis(1)); // TODO: debug only
     }
-    cw.info("exit loop");
+    ConsoleWindow::info("exit loop");
     Ok(())
 }
 
