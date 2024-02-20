@@ -1,6 +1,7 @@
 pub use anyhow::Result as Result;
 
 pub use crate::ConsoleWindow as ConsoleWindow;
+pub use crate::ConsoleWindowState as ConsoleWindowState;
 pub use crate::console_draw::ConsoleDraw as ConsoleDraw;
 
 pub use crossterm::event    as xEvent;

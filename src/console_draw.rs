@@ -17,7 +17,7 @@ impl Drop for ConsoleDraw {
 impl ConsoleDraw {
     pub(crate) fn new( ) -> Result< Self > {
         let size = ConsoleWindow::size()?;
-        ConsoleWindow::clear_main_screen()?;
+        ConsoleWindow::clear_screen()?;
         ConsoleWindow::sync_and_flush()?;
         ConsoleWindow::begin_sync()?;
         ConsoleWindow::set_colors( xColors{foreground:Some(xColor::Reset),background:Some(xColor::Reset)} )?;

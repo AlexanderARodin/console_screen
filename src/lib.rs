@@ -1,4 +1,5 @@
 pub mod prelude;
+
     use prelude::*;
 
 
@@ -9,21 +10,36 @@ pub mod prelude;
 mod impl_console_window;
 mod console_draw;
 
-pub struct ConsoleWindow;
+pub struct ConsoleWindow {
+    state: ConsoleWindowState,
+}
+pub enum ConsoleWindowState {
+    NotTerminal,
+    Main,
+    Alt(bool),
+}
+
 impl Drop for ConsoleWindow {
     fn drop(&mut self) {
-        Self::restore_log_screen();
-        println!( "<-- ConsoleWindow destroyed" );
+        if let ConsoleWindowState::NotTerminal = self.state {
+            println!( "<-- ConsoleWindow destroyed (NotTerminal)" );
+        }else{
+            if let Err(e) = self.restore_main_screen() {
+                eprintln!( "{}", e.to_string() );
+            }
+            println!( "<-- ConsoleWindow destroyed" );
+        }
     }
 }
 
 impl ConsoleWindow {
-    pub fn new() -> Result< Self > {
-        println!( "-> ConsoleWindow preparing.." );
-        crossterm::terminal::enable_raw_mode()?;
-        Self::switch_main_screen()?;
-        Self::clear_main_screen()?;
-        Self::info( "--> ConsoleWindow created" );
-        Ok( Self )
+    pub fn new() -> Result<Self> {
+        use std::io::IsTerminal;
+        if std::io::stdout().is_terminal() {
+            Ok( Self { state: ConsoleWindowState::Main } )
+        }else{
+            Ok( Self { state: ConsoleWindowState::NotTerminal } )
+        }
     }
 }
+

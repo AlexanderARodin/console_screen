@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use anyhow::anyhow;
 
 //  //  //  //  //  //  //  //  //  //
 use std::io::{stdout,Write};
@@ -16,8 +17,18 @@ impl ConsoleWindow {
         stdout().execute( xEvent::EnableMouseCapture )?;
         Ok(())
     }
-    pub fn get_painter() -> Result< ConsoleDraw > {
-        ConsoleDraw::new()
+    pub fn get_painter(&self) -> Result< ConsoleDraw > {
+        match self.state {
+            ConsoleWindowState::Alt(_) => {
+                ConsoleDraw::new()
+            },
+            ConsoleWindowState::NotTerminal => {
+                Err(anyhow!( "Can't paint. It's not a terminal" ))
+            },
+            ConsoleWindowState::Main=> {
+                Err(anyhow!( "Painting is not implemeted in Main screen" ))
+            },
+        }
     }
     pub fn read_events() -> Result< Vec<xEvent::Event> > {
         let mut result = Vec::new();
@@ -27,14 +38,18 @@ impl ConsoleWindow {
         return Ok( result );
     }
     
-    pub fn info(info: &str) {
-        let _ = Self::println_on_log_screen(false, info);
+    pub fn info(&mut self, info: &str) {
+        let _ = self.println_on_main_screen(false, info);
     }
-    pub fn error(msg: &str) {
-        let _ = Self::println_on_log_screen(true, msg );
+    pub fn error(&mut self, msg: &str) {
+        let _ = self.println_on_main_screen(true, msg );
     }
-    fn println_on_log_screen(is_error: bool, line: &str ) -> Result< () > {
-        Self::restore_log_screen();
+    fn println_on_main_screen( &mut self, is_error: bool, line: &str ) -> Result< () > {
+        let automouse_capture = match self.state {
+            ConsoleWindowState::Alt( au ) => Some(au),
+            _ => None,
+        };
+        let res = self.restore_main_screen();
         {
             if is_error {
                 eprintln!("{line}");
@@ -42,24 +57,64 @@ impl ConsoleWindow {
                 println!("{line}");
             }
         }
-        Self::switch_main_screen()?;
-        Self::sync_and_flush()?;
+        if let Err(e) = res {
+            eprintln!("{}", e.to_string());
+        }
+        if let Some( au ) = automouse_capture {
+            self.enter_alt_screen( au )?;
+        }
         Ok(())
     }
 }
 
 //  //  //  //  //  //  //  //  //  //
 impl ConsoleWindow {
-    pub(crate) fn restore_log_screen() {
-        let _ = xTerm::disable_raw_mode();
+    pub fn restore_main_screen(&mut self) -> Result<()> {
+        if let ConsoleWindowState::NotTerminal = self.state {
+                return Ok(());
+        }
+        //
+        let mut error_list = String::new();
+        //
+        if let Err(e) = Self::sync_and_flush() {
+            collect_errors(&mut error_list, e.as_ref() );
+        }
+        //
+        if let Err(e) = xTerm::disable_raw_mode() {
+            collect_errors(&mut error_list, &e);
+        }
         let mut stdout = stdout();
-        let _ = stdout.execute( xEvent::DisableMouseCapture );
-        let _ = stdout.execute(  xTerm::LeaveAlternateScreen );
-        let _ = stdout.queue(    xTerm::EnableLineWrap);
-        let _ = stdout.execute(xCursor::RestorePosition );
-        let _ = stdout.execute(xCursor::Show );
+        if let Err(e) = stdout.execute( xEvent::DisableMouseCapture ) {
+            collect_errors(&mut error_list, &e);
+        }
+        if let Err(e) = stdout.execute(  xTerm::LeaveAlternateScreen ) {
+            collect_errors(&mut error_list, &e);
+        }
+        if let Err(e) = stdout.execute(  xTerm::EnableLineWrap ) {
+            collect_errors(&mut error_list, &e);
+        }
+        if let Err(e) = stdout.execute(xCursor::RestorePosition ) {
+            collect_errors(&mut error_list, &e);
+        }
+        if let Err(e) = stdout.execute(xCursor::Show ) {
+            collect_errors(&mut error_list, &e);
+        }
+        if let Err(e) = stdout.flush() {
+            collect_errors(&mut error_list, &e);
+        }
+        if error_list.is_empty() {
+            self.state = ConsoleWindowState::Main;
+            Self::sync_and_flush()?;
+            return Ok(());
+        }else{
+            return Err(anyhow!(error_list));
+        }
     }
-    pub(crate) fn switch_main_screen() -> Result< () > {
+    pub fn enter_alt_screen(&mut self, automouse_capture: bool) -> Result< () > {
+        if let ConsoleWindowState::NotTerminal = self.state {
+            return Err(anyhow!("Can't enter AltScreen, It's not a terminal"));
+        }
+        //
         xTerm::enable_raw_mode()?;
         let mut stdout = stdout();
         stdout.execute( xTerm::BeginSynchronizedUpdate )?;
@@ -67,6 +122,11 @@ impl ConsoleWindow {
         stdout.queue(   xTerm::EnterAlternateScreen)?;
         stdout.queue(   xTerm::DisableLineWrap)?;
         stdout.queue( xCursor::Hide )?;
+        Self::sync_and_flush()?;
+        if automouse_capture {
+            Self::capture_mouse()?;
+        }
+        self.state = ConsoleWindowState::Alt(automouse_capture);
         Ok(())
     }
     pub(crate) fn begin_sync() -> Result< () > {
@@ -80,7 +140,7 @@ impl ConsoleWindow {
         Ok(())
     }
 
-    pub(crate) fn clear_main_screen() -> Result< () > {
+    pub(crate) fn clear_screen() -> Result< () > {
         stdout().queue( xTerm::Clear(xTerm::ClearType::All) )?;
         Ok(())
     }
@@ -108,3 +168,12 @@ impl ConsoleWindow {
         Ok(())
     }
 }
+
+
+//  //  //  //  //  //  //  //  //  //
+fn collect_errors( error_list: &mut String, err: &dyn std::error::Error ) {
+    *error_list += "E: ";
+    *error_list += &err.to_string();
+    *error_list += "\n";
+}
+
