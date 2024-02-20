@@ -129,7 +129,7 @@ impl ConsoleWindow {
         self.state = ConsoleWindowState::Alt(automouse_capture);
         Ok(())
     }
-    pub(crate) fn begin_sync() -> Result< () > {
+    pub(crate) fn start_sync_frame() -> Result< () > {
         stdout().execute( xTerm::BeginSynchronizedUpdate )?;
         Ok(())
     }
