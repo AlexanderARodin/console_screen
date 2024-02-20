@@ -1,5 +1,7 @@
 pub mod prelude;
+
     use prelude::*;
+
 
 
 //  //  //  //  //  //  //  //  //  //
@@ -9,27 +11,35 @@ mod impl_console_window;
 mod console_draw;
 
 pub struct ConsoleWindow {
-    stdout: std::io::Stdout,
-    automouse_capturing: bool,
+    state: ConsoleWindowState,
 }
+pub enum ConsoleWindowState {
+    NotTerminal,
+    Main,
+    Alt(bool),
+}
+
 impl Drop for ConsoleWindow {
     fn drop(&mut self) {
-        self.restore_log_screen();
-        println!( "<-- ConsoleWindow destroyed" );
+        if let ConsoleWindowState::NotTerminal = self.state {
+            println!( "<-- ConsoleWindow destroyed (NotTerminal)" );
+        }else{
+            if let Err(e) = self.restore_main_screen() {
+                eprintln!( "{}", e.to_string() );
+            }
+            println!( "<-- ConsoleWindow destroyed" );
+        }
     }
 }
 
 impl ConsoleWindow {
-    pub fn new() -> ResultOf< Self > {
-        println!( "-> ConsoleWindow preparing.." );
-        crossterm::terminal::enable_raw_mode()?;
-        let stdout = std::io::stdout();
-        let mut new_one= Self{stdout,automouse_capturing:false};
-            {
-                new_one.switch_main_screen()?;
-                new_one.clear_main_screen()?;
-                new_one.info( "--> ConsoleWindow created" );
-            }
-        Ok( new_one )
+    pub fn new() -> Result<Self> {
+        use std::io::IsTerminal;
+        if std::io::stdout().is_terminal() {
+            Ok( Self { state: ConsoleWindowState::Main } )
+        }else{
+            Ok( Self { state: ConsoleWindowState::NotTerminal } )
+        }
     }
 }
+

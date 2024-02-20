@@ -1,5 +1,4 @@
 use std::process::exit;
-use anyhow::anyhow;
 
 use console_window::prelude::*;
 
@@ -19,38 +18,61 @@ fn main() {
 }
 
 fn wrapper() -> Result<()> {
+    //
     let mut cw = ConsoleWindow::new()?;
+    //cw.restore_main_screen()?;
+    cw.info("one two");
+    std::thread::sleep(std::time::Duration::from_millis(999)); // TODO: debug only
+    cw.info("1 2 3 4");
+    std::thread::sleep(std::time::Duration::from_millis(999)); // TODO: debug only
+    cw.error("0 9 8 7");
+    std::thread::sleep(std::time::Duration::from_millis(999)); // TODO: debug only
+    cw.enter_alt_screen(false)?;
+    println!("xxxxxxxx");
+    std::thread::sleep(std::time::Duration::from_millis(3333)); // TODO: debug only
+    cw.error("6969");
+    std::thread::sleep(std::time::Duration::from_millis(999)); // TODO: debug only
+    cw.enter_alt_screen(false)?;
+    println!("uuuuuuu");
+    std::thread::sleep(std::time::Duration::from_millis(3333)); // TODO: debug only
+    Ok(())
+}
+
+
+
+/*
+fn wrapper_old() -> Result<()> {
+    let cw = ConsoleWindow::new()?;
     cw.info("enter loop..");
-    cw.enter_alt_screen(true)?;
     let mut pointer = (0,0);
     for i in 0..= 10000 {//65535 {
         let title = format!(" --> {}", i);
         ConsoleWindow::set_title(&title)?;
-        match process_input(&mut cw)? {
+        match process_input()? {
             None => {},
             Some( pos ) => {
                 pointer = pos;
             },
         }
         {
-            process_draw( &mut cw.get_painter()?, i, &pointer )?;
+            process_draw( &mut ConsoleWindow::get_painter()?, i, &pointer )?;
+            ConsoleWindow::capture_mouse()?;
         }
         std::thread::sleep(std::time::Duration::from_millis(1)); // TODO: debug only
     }
-    cw.info("exit loop");
+    ConsoleWindow::info("exit loop");
     Ok(())
 }
 
-fn process_input( cw: &mut ConsoleWindow ) -> Result< Option<(u16,u16)> > {
+fn process_input() -> Result< Option<(u16,u16)> > {
     let inputs = ConsoleWindow::read_events()?;
     let mut result: Option< (u16,u16) > = None;
     for event in inputs {
         match event {
             xEvent::Event::Key(key) => {
                 if key.code == xEvent::KeyCode::Char('g') {
-                    cw.info("GGGGGGGG");
-        std::thread::sleep(std::time::Duration::from_millis(1000)); // TODO: debug only
-                    cw.info("hhhhhhhh");
+                    ConsoleWindow::info("GGGGGGGG");
+                    ConsoleWindow::info("hhhhhhhh");
         std::thread::sleep(std::time::Duration::from_millis(1000)); // TODO: debug only
                 }
                 if key.code == xEvent::KeyCode::Char('c') {
@@ -102,3 +124,4 @@ fn process_draw( cd: &mut ConsoleDraw, i: u16, pointer: &(u16,u16) ) -> Result<(
         .print(&info2)?;
     Ok(())
 }
+*/
