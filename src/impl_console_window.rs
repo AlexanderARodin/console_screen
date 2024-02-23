@@ -111,12 +111,12 @@ impl ConsoleWindow {
         //
         xTerm::enable_raw_mode()?;
         let mut stdout = stdout();
-        stdout.execute(xTerm::BeginSynchronizedUpdate)?;
         stdout.queue(xCursor::SavePosition)?;
         stdout.queue(xTerm::EnterAlternateScreen)?;
         stdout.queue(xTerm::DisableLineWrap)?;
         stdout.queue(xCursor::Hide)?;
         Self::sync_and_flush()?;
+        stdout.execute(xTerm::BeginSynchronizedUpdate)?;
         if automouse_capture {
             Self::capture_mouse()?;
         }

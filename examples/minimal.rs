@@ -22,7 +22,6 @@ fn wrapper() -> Result<()> {
     cw.enter_alt_screen(true)?;
     let mut pointer = (0, 0);
     for i in 0..=10000 {
-        //65535 {
         let title = format!(" --> {}", i);
         ConsoleWindow::set_title(&title)?;
         match process_input(&mut cw)? {
@@ -47,9 +46,11 @@ fn process_input(cw: &mut ConsoleWindow) -> Result<Option<(u16, u16)>> {
         match event {
             xEvent::Event::Key(key) => {
                 if key.code == xEvent::KeyCode::Char('g') {
-                    cw.info("GGGGGGGG");
+                    use std::io::Write;
+                    cw.info("G-G-G-G-G-G-G-G");
+                    std::io::stdout().flush();
                     std::thread::sleep(std::time::Duration::from_millis(1000)); // TODO: debug only
-                    cw.info("hhhhhhhh");
+                    cw.info("h--h--h--h--h--h--h--h");
                     std::thread::sleep(std::time::Duration::from_millis(1000)); // TODO: debug only
                 }
                 if key.code == xEvent::KeyCode::Char('c') {
@@ -90,7 +91,7 @@ fn process_draw(cd: &mut ConsoleDraw, i: u16, pointer: &(u16, u16)) -> Result<()
     }
     //
     cd.set_colors(xColors {
-        foreground: Some(xColor::Reset),
+        foreground: Some(xColor::Black),
         background: Some(xColor::Grey),
     })?;
     let info = format!("size: {},{}", cd.width, cd.height);
