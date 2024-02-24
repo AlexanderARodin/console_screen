@@ -7,3 +7,9 @@ edition = "2021"
 crossterm = "0.27.0"
 anyhow = "1.0"
 
+[profile.release]
+strip = true
+opt-level = 's'
+lto = true
+codegen-units = 1
+

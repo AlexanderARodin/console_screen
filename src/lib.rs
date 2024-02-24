@@ -41,7 +41,18 @@ impl ScreenCore {
 
 impl Drop for ScreenCore {
     fn drop(&mut self) {
-        p("<-- ScreenState destroyed");
+        if cfg!(test) {
+            p("<-- ScreenCore destroyed (TESTs)");
+        } else {
+            if let ScreenState::NotTerminal = self.state {
+                p("<-- ScreenCore destroyed (NotTerminal)");
+            } else {
+                if let Err(e) = self.set_state(ScreenState::Main) {
+                    eprintln!("{}", e);
+                }
+                p("<-- ScreenCore destroyed");
+            }
+        }
     }
 }
 
@@ -55,7 +66,86 @@ impl ScreenCore {
     pub fn get_state(&self) -> &ScreenState {
         &self.state
     }
+    pub fn set_state(&mut self, new_state: ScreenState) -> Result<()> {
+        match (&self.state, new_state) {
+            (ScreenState::Alt(from), ScreenState::Alt(to)) => {
+                self.switch_alt(*from, to)?;
+                return Ok(());
+            }
+            (ScreenState::NotTerminal, ScreenState::NotTerminal)
+            | (ScreenState::Main, ScreenState::Main) => {
+                return Ok(());
+            }
+            (ScreenState::NotTerminal, _) => {
+                return Err(anyhow!(
+                    "ScreenCore.set_state : unable change NotTerminal state"
+                ));
+            }
+            _ => {
+                return Err(anyhow!(
+                    "ScreenCore.set_state : unsupported state transition"
+                ));
+            }
+        }
+    }
 }
+impl ScreenCore {
+    pub(crate) fn switch_alt(&mut self, from: bool, to: bool) -> Result<()> {
+        if from == to {
+            return Ok(());
+        }
+        todo!("mouse On/Off");
+        self.state = ScreenState::Alt(to);
+        Ok(())
+    }
+}
+
+//  //  //  //  //  //  //  //  //  //
+//          TESTs
+//  //  //  //  //  //  //  //  //  //
+#[allow(non_snake_case)]
+#[cfg(test)]
+mod basic {
+    use super::*;
+
+    #[test]
+    fn check_states_Alt() -> Result<()> {
+        if let ScreenState::Alt(false) = (ScreenCore {
+            state: ScreenState::Alt(false),
+        })
+        .get_state()
+        {
+        } else {
+            assert!(false, "must be ScreenState::Alt");
+        }
+        Ok(())
+    }
+    #[test]
+    fn check_states_Main() -> Result<()> {
+        if let ScreenState::Main = (ScreenCore {
+            state: ScreenState::Main,
+        })
+        .get_state()
+        {
+        } else {
+            assert!(false, "must be ScreenState::Main");
+        }
+        Ok(())
+    }
+    #[test]
+    fn check_states_NotTerminal() -> Result<()> {
+        if let ScreenState::NotTerminal = (ScreenCore {
+            state: ScreenState::NotTerminal,
+        })
+        .get_state()
+        {
+        } else {
+            assert!(false, "must be ScreenState::NotTerminal");
+        }
+        Ok(())
+    }
+}
+
 //##//##//##//##//##//##//##//##//##//##//##//##//##
 pub enum ConsoleWindowState {
     NotTerminal,
@@ -88,7 +178,7 @@ impl Drop for ConsoleWindow {
             println!("<-- ConsoleWindow destroyed (NotTerminal)");
         } else {
             if let Err(e) = self.restore_main_screen() {
-                eprintln!("{}", e.to_string());
+                eprintln!("{}", e);
             }
             println!("<-- ConsoleWindow destroyed");
         }

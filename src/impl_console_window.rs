@@ -29,7 +29,7 @@ impl ConsoleWindow {
         while xEvent::poll(POLL_WAIT_TIME)? {
             result.push(xEvent::read()?);
         }
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn info(&mut self, info: &str) {
@@ -52,7 +52,7 @@ impl ConsoleWindow {
             }
         }
         if let Err(e) = res {
-            eprintln!("{}", e.to_string());
+            eprintln!("{}", e);
         }
         if let Some(au) = automouse_capture {
             self.enter_alt_screen(au)?;
@@ -99,9 +99,9 @@ impl ConsoleWindow {
         if error_list.is_empty() {
             self.state = ConsoleWindowState::Main;
             Self::sync_and_flush()?;
-            return Ok(());
+            Ok(())
         } else {
-            return Err(anyhow!(error_list));
+            Err(anyhow!(error_list))
         }
     }
     pub fn enter_alt_screen(&mut self, automouse_capture: bool) -> Result<()> {
@@ -147,7 +147,7 @@ impl ConsoleWindow {
 //  //  //  //  //  //  //  //  //  //
 impl ConsoleWindow {
     pub(crate) fn size() -> Result<(u16, u16)> {
-        return Ok(xTerm::size()?);
+        Ok(xTerm::size()?)
     }
     pub(crate) fn move_to(x: u16, y: u16) -> Result<()> {
         stdout().queue(xCursor::MoveTo(x, y))?;
