@@ -17,7 +17,23 @@ fn main() {
 
 fn wrapper() -> Result<()> {
     //
-    let mut ss = ScreenCore::new()?;
-    std::thread::sleep(std::time::Duration::from_millis(333)); // TODO: debug only
+    let ss = MainScreen::new()?;
+    for i in 0..6 {
+        ss.print(&i.to_string());
+        std::thread::sleep(std::time::Duration::from_millis(222));
+    }
+    let alt_screen = ss.go_alt_screen()?;
+    for i in 0..10 {
+        println!("->{}<-", i);
+        std::thread::sleep(std::time::Duration::from_millis(222));
+    }
+    std::thread::sleep(std::time::Duration::from_millis(555));
+    //
+    let ss2 = alt_screen.go_main_screen()?;
+    for i in 6..10 {
+        ss2.print(&i.to_string());
+        std::thread::sleep(std::time::Duration::from_millis(222));
+    }
+    ss2.print("fine!!!");
     Ok(())
 }

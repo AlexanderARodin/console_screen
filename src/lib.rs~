@@ -1,0 +1,217 @@
+pub mod prelude;
+
+use prelude::*;
+
+//  //  //  //  //  //  //  //  //  //
+//          CORE
+//  //  //  //  //  //  //  //  //  //
+mod console_draw;
+mod impl_console_window;
+
+pub struct NotTerminal {}
+pub struct MainScreen {}
+pub struct AltScreen {}
+
+pub trait SimpleStdout {
+    //
+}
+impl SimpleStdout for NotTerminal {}
+impl SimpleStdout for MainScreen {}
+
+pub enum ScreenState {
+    NotTerminal,
+    Main,
+    Alt(bool),
+}
+
+//##//##//##//##//##//##//##//##//##//##//##//##//##
+use anyhow::anyhow;
+use std::io::Write;
+
+pub struct ScreenCore {
+    state: Box<dyn SimpleStdout>,
+}
+
+impl ScreenCore {
+    pub fn new() -> Result<Self> {
+        use std::io::IsTerminal;
+        if std::io::stdout().is_terminal() {
+            p("<-- ScreenState::Main");
+            Ok(Self {
+                state: Box::new(MainScreen {}),
+            })
+        } else {
+            p("<-- ScreenState::NotTerminal");
+            Ok(Self {
+                state: Box::new(NotTerminal {}),
+            })
+        }
+    }
+}
+
+pub struct ScreenCore_old {
+    state: ScreenState,
+}
+
+impl ScreenCore_old {
+    pub fn new_old() -> Result<Self> {
+        use std::io::IsTerminal;
+        if std::io::stdout().is_terminal() {
+            p("<-- ScreenState::Main");
+            Ok(Self {
+                state: ScreenState::Main,
+            })
+        } else {
+            p("<-- ScreenState::NotTerminal");
+            Ok(Self {
+                state: ScreenState::NotTerminal,
+            })
+        }
+    }
+}
+
+impl Drop for ScreenCore {
+    fn drop(&mut self) {
+        if cfg!(test) {
+            p("<-- ScreenCore destroyed (TESTs)");
+        } else {
+            if let ScreenState::NotTerminal = self.state {
+                p("<-- ScreenCore destroyed (NotTerminal)");
+            } else {
+                if let Err(e) = self.set_state(ScreenState::Main) {
+                    eprintln!("{}", e);
+                }
+                p("<-- ScreenCore destroyed");
+            }
+        }
+    }
+}
+
+fn p(t: &str) {
+    std::io::stdout().flush().unwrap();
+    println!("# {}", t);
+    std::io::stdout().flush().unwrap();
+}
+
+impl ScreenCore_old {
+    pub fn get_state(&self) -> &ScreenState {
+        &self.state
+    }
+    pub fn set_state(&mut self, new_state: ScreenState) -> Result<()> {
+        match (&self.state, new_state) {
+            (ScreenState::Alt(from), ScreenState::Alt(to)) => {
+                self.switch_alt(*from, to)?;
+                return Ok(());
+            }
+            (ScreenState::NotTerminal, ScreenState::NotTerminal)
+            | (ScreenState::Main, ScreenState::Main) => {
+                return Ok(());
+            }
+            (ScreenState::NotTerminal, _) => {
+                return Err(anyhow!(
+                    "ScreenCore.set_state : unable change NotTerminal state"
+                ));
+            }
+            _ => {
+                return Err(anyhow!(
+                    "ScreenCore.set_state : unsupported state transition"
+                ));
+            }
+        }
+    }
+}
+impl ScreenCore_old {
+    pub(crate) fn switch_alt(&mut self, from: bool, to: bool) -> Result<()> {
+        if from == to {
+            return Ok(());
+        }
+        todo!("mouse On/Off");
+        self.state = ScreenState::Alt(to);
+        Ok(())
+    }
+}
+
+//  //  //  //  //  //  //  //  //  //
+//          TESTs
+//  //  //  //  //  //  //  //  //  //
+#[allow(non_snake_case)]
+#[cfg(test)]
+mod basic {
+    use super::*;
+
+    #[test]
+    fn check_states_Alt() -> Result<()> {
+        if let ScreenState::Alt(false) = (ScreenCore {
+            state: ScreenState::Alt(false),
+        })
+        .get_state()
+        {
+        } else {
+            assert!(false, "must be ScreenState::Alt");
+        }
+        Ok(())
+    }
+    #[test]
+    fn check_states_Main() -> Result<()> {
+        if let ScreenState::Main = (ScreenCore {
+            state: ScreenState::Main,
+        })
+        .get_state()
+        {
+        } else {
+            assert!(false, "must be ScreenState::Main");
+        }
+        Ok(())
+    }
+    #[test]
+    fn check_states_NotTerminal() -> Result<()> {
+        if let ScreenState::NotTerminal = (ScreenCore {
+            state: ScreenState::NotTerminal,
+        })
+        .get_state()
+        {
+        } else {
+            assert!(false, "must be ScreenState::NotTerminal");
+        }
+        Ok(())
+    }
+}
+
+//##//##//##//##//##//##//##//##//##//##//##//##//##
+pub enum ConsoleWindowState {
+    NotTerminal,
+    Main,
+    Alt(bool),
+}
+
+pub struct ConsoleWindow {
+    state: ConsoleWindowState,
+}
+
+impl ConsoleWindow {
+    pub fn new() -> Result<Self> {
+        use std::io::IsTerminal;
+        if std::io::stdout().is_terminal() {
+            Ok(Self {
+                state: ConsoleWindowState::Main,
+            })
+        } else {
+            Ok(Self {
+                state: ConsoleWindowState::NotTerminal,
+            })
+        }
+    }
+}
+
+impl Drop for ConsoleWindow {
+    fn drop(&mut self) {
+        if let ConsoleWindowState::NotTerminal = self.state {
+            println!("<-- ConsoleWindow destroyed (NotTerminal)");
+        } else {
+            if let Err(e) = self.restore_main_screen() {
+                eprintln!("{}", e);
+            }
+            println!("<-- ConsoleWindow destroyed");
+        }
+    }
+}
