@@ -17,23 +17,23 @@ fn main() {
 
 fn wrapper() -> Result<()> {
     //
-    let ss = MainScreen::new()?;
+    let mut main_screen = MainScreen::new()?;
     for i in 0..6 {
-        ss.print(&i.to_string());
+        main_screen.print(&i.to_string());
         std::thread::sleep(std::time::Duration::from_millis(222));
     }
-    let alt_screen = ss.go_alt_screen()?;
+    let alt_screen = main_screen.go_alt_screen()?;
     for i in 0..10 {
         println!("->{}<-", i);
         std::thread::sleep(std::time::Duration::from_millis(222));
     }
     std::thread::sleep(std::time::Duration::from_millis(555));
     //
-    let ss2 = alt_screen.go_main_screen()?;
+    main_screen = alt_screen.go_main_screen()?;
     for i in 6..10 {
-        ss2.print(&i.to_string());
+        main_screen.print(&i.to_string());
         std::thread::sleep(std::time::Duration::from_millis(222));
     }
-    ss2.print("fine!!!");
+    main_screen.print("fine!!!");
     Ok(())
 }

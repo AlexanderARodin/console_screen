@@ -12,7 +12,8 @@ use anyhow::Result;
 //  //  //  //  //  //  //  //  //  //
 //          CORE
 //  //  //  //  //  //  //  //  //  //
-use crate::main_screen::*;
+use crate::screen_drawer::*;
+use crate::screen_main::*;
 
 pub struct AltScreen {
     auto_mouse: bool,
@@ -30,12 +31,16 @@ impl AltScreen {
         try_to_leave_altscreen()?;
         MainScreen::new()
     }
-    pub fn paint(&self, buf: &str) -> Result<()> {
+    //pub fn paint(&self, commands: &[impl crossterm::Command]) -> Result<()> {
+    pub fn redraw_all(&self, page: &ScreenDrawer) -> Result<()> {
         let mut stdout = stdout();
         sync_and_flush()?;
         stdout.execute(xTerm::BeginSynchronizedUpdate)?;
         {
-            // TODO
+            for cmd in commands {
+                // TODO
+                stdout.queue(cmd);
+            }
         }
         sync_and_flush()?;
         Ok(())
@@ -108,8 +113,8 @@ fn try_to_leave_altscreen() -> Result<()> {
 
 fn sync_and_flush() -> Result<()> {
     let mut stdout = stdout();
-    stdout.flush()?;
     stdout.execute(xTerm::EndSynchronizedUpdate)?;
+    //stdout.flush()?;
     Ok(())
 }
 

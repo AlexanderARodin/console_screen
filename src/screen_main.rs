@@ -6,7 +6,7 @@ use std::io::Write;
 //  //  //  //  //  //  //  //  //  //
 //          CORE
 //  //  //  //  //  //  //  //  //  //
-use crate::alt_screen::*;
+use crate::screen_alt::*;
 
 pub struct MainScreen {}
 
