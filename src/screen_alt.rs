@@ -9,10 +9,11 @@ use std::io::{stdout, Write};
 use anyhow::anyhow;
 use anyhow::Result;
 
+static POLL_WAIT_TIME: std::time::Duration = std::time::Duration::from_secs(0);
 //  //  //  //  //  //  //  //  //  //
 //          CORE
 //  //  //  //  //  //  //  //  //  //
-use crate::screen_drawer::*;
+use crate::draw_cmd::DrawCmd::{self,*};
 use crate::screen_main::*;
 
 pub struct AltScreen {
@@ -31,15 +32,23 @@ impl AltScreen {
         try_to_leave_altscreen()?;
         MainScreen::new()
     }
-    //pub fn paint(&self, commands: &[impl crossterm::Command]) -> Result<()> {
-    pub fn redraw_all(&self, page: &ScreenDrawer) -> Result<()> {
+    pub fn repaint_all(&self, commands: &[DrawCmd]) -> Result<()> {
         let mut stdout = stdout();
         sync_and_flush()?;
         stdout.execute(xTerm::BeginSynchronizedUpdate)?;
         {
             for cmd in commands {
-                // TODO
-                stdout.queue(cmd);
+                match cmd {
+                    ClearAll => {
+                        stdout.queue( xTerm::Clear(xTerm::ClearType::All))?;
+                    },
+                    MoveTo(x,y) => {
+                        stdout.queue( xCursor::MoveTo(*x,*y))?;
+                    },
+                    StringOut(s) => {
+                        print!("{}",s);
+                    },
+                };
             }
         }
         sync_and_flush()?;
@@ -116,6 +125,15 @@ fn sync_and_flush() -> Result<()> {
     stdout.execute(xTerm::EndSynchronizedUpdate)?;
     //stdout.flush()?;
     Ok(())
+}
+
+
+pub fn read_events() -> Result<Vec<xEvent::Event>> {
+    let mut result = Vec::new();
+    while xEvent::poll(POLL_WAIT_TIME)? {
+        result.push(xEvent::read()?);
+    }
+    Ok(result)
 }
 
 //  //  //  //  //  //  //  //  //  //

@@ -3,6 +3,6 @@ pub mod prelude;
 
 //  //  //  //  //  //  //  //  //  //
 
-mod screen_alt;
-mod screen_drawer;
 mod screen_main;
+mod screen_alt;
+mod draw_cmd;

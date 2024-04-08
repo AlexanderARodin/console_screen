@@ -27,17 +27,17 @@ fn wrapper() -> Result<()> {
     //
     //ss.enter_alt_screen(true)?;
     let mut pointer = (0, 0);
-    for i in 0..=1000 {
+    for i in 0..=100 {
         std::thread::sleep(std::time::Duration::from_millis(100)); // TODO: debug only
         let title = format!(" --> {}", i);
         set_title(&title)?;
-        let cmds_O = [
-            //Box::new(xTerm::Clear(xTerm::ClearType::All)),
-            &xCursor::MoveTo(i, i),
+        let cmds = [
+            DrawCmd::ClearAll,
+            DrawCmd::MoveTo(i*2,i),
+            DrawCmd::StringOut("=".to_owned()),
         ];
-        let mut cmds: Vec<dyn crossterm::Command> = Vec::new();
-        alt_screen.paint(&cmds)?;
-        print!("x");
+        alt_screen.repaint_all(&cmds)?;
+        //print!("x");
         /*
         match process_input(&mut cw)? {
             None => {}
@@ -60,7 +60,6 @@ fn wrapper() -> Result<()> {
     Ok(())
 }
 
-/*
 fn process_input(cw: &mut ConsoleWindow) -> Result<Option<(u16, u16)>> {
     let inputs = ConsoleWindow::read_events()?;
     let mut result: Option<(u16, u16)> = None;
@@ -91,7 +90,6 @@ fn process_input(cw: &mut ConsoleWindow) -> Result<Option<(u16, u16)>> {
     }
     Ok(result)
 }
-*/
 
 /*
 fn process_draw(cd: &mut ConsoleDraw, i: u16, pointer: &(u16, u16)) -> Result<()> {

@@ -2,6 +2,7 @@ pub use anyhow::Result;
 
 pub use crate::screen_alt::AltScreen;
 pub use crate::screen_main::MainScreen;
+pub use crate::draw_cmd::DrawCmd;
 
 pub use crossterm::cursor as xCursor;
 pub use crossterm::event as xEvent;
