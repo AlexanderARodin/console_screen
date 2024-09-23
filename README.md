@@ -1,2 +1,3 @@
-# console_window
+# abandoned! moved to Ratatui
+## console_window
 - wrapper around crossterm and stdout
